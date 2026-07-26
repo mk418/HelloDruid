@@ -25,6 +25,8 @@ Cat powershift recommendations are deterministic: Furor must be rank 5, current 
 
 Cat's first row is `Faerie Fire / Shred / Claw / Rake / Rip / Ferocious Bite / Tiger's Fury`; its second row groups powershifting, stealth openers, and utility. Bear's first row is `Faerie Fire / Maul / Swipe / Demoralizing Roar / Growl / Feral Charge / Bash`; rage, survival, and the AoE taunt live on row two. Recommendation priority is independent from this visual ordering.
 
+Shared buffs use secure `[@target,help,nodead] ...; [@player] ...` macros, so they default to the Druid while still allowing an explicitly selected friendly target. Omen of Clarity is self-only. Tranquility is the sole healing action on the caster grid and always cancels shapeshift before casting.
+
 ## Modules
 
 - `Core.lua` — class gate, events, slash commands, locally animated shine.

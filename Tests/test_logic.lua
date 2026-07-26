@@ -90,6 +90,8 @@ expectOrder(ns.Abilities.cat,
 expectOrder(ns.Abilities.bear,
     { "Faerie Fire (Feral)", "Maul", "Swipe", "Demoralizing Roar", "Growl", "Feral Charge", "Bash" },
     "Bear")
+expect(ns.Abilities.balance[11].name == "Tranquility", "Tranquility should be on the caster layout")
+expect(ns.Abilities.utility[3].name == "Omen of Clarity", "Omen should be on shared utility")
 
 -- With maintenance satisfied, solo/targeted Balance prefers Wrath.
 state.debuffs = { ["Faerie Fire"] = true, Moonfire = true, ["Insect Swarm"] = true }
@@ -97,6 +99,8 @@ local result = ns.Helper:Compute("balance")
 expect(result.Wrath and result.Wrath.hard, "solo Balance should recommend Wrath")
 expect(not (result.Starfire and result.Starfire.hard), "solo Balance should not recommend Starfire")
 expect(result.Hurricane == nil, "Hurricane availability should not create a recommendation")
+expect(result["Omen of Clarity"] and result["Omen of Clarity"].hard,
+    "missing Omen of Clarity should create a self-buff reminder")
 
 state.debuffs.Moonfire = nil
 result = ns.Helper:Compute("balance")

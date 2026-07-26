@@ -49,13 +49,20 @@ local function macroFor(ability, mode, utility)
         return "#showtooltip Cat Form\n/cancelform\n/cast Cat Form"
     end
     local lines = { "#showtooltip " .. ability.name }
-    if utility then
+    if utility or ability.requiresCaster then
         lines[#lines + 1] = "/cancelform [form]"
     elseif mode == "balance" then
         local condition = balanceCancelCondition()
         if condition then lines[#lines + 1] = "/cancelform " .. condition end
     end
-    lines[#lines + 1] = "/cast " .. ability.name
+    if ability.targetMode == "friendly_or_self" then
+        lines[#lines + 1] = ("/cast [@target,help,nodead] %s; [@player] %s"):format(
+            ability.name, ability.name)
+    elseif ability.targetMode == "self" then
+        lines[#lines + 1] = "/cast [@player] " .. ability.name
+    else
+        lines[#lines + 1] = "/cast " .. ability.name
+    end
     if not ability.noStartAttack and not utility and mode ~= "balance" then
         lines[#lines + 1] = "/startattack"
     end
@@ -298,6 +305,14 @@ local function placeRow(buttons, parent, y)
     end
 end
 
+local function placeVisible(buttons, parent, y)
+    local visible = {}
+    for _, button in ipairs(buttons) do
+        if button:IsShown() then visible[#visible + 1] = button end
+    end
+    placeRow(visible, parent, y)
+end
+
 local function createStatus(parent, color)
     local bar = CreateFrame("StatusBar", nil, parent)
     bar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
@@ -372,11 +387,13 @@ function AB:Build()
     end
     for index, ability in ipairs(utilityDefs) do
         local button = createButton(utility, "Utility" .. index)
-        button:SetAttribute("macrotext", macroFor(ability, "balance", true))
+        local macro = macroFor(ability, "balance", true)
+        button:SetAttribute("macrotext", macro)
         applyAbility(button, ability)
+        button:SetShown(macro ~= "")
         self.utilityButtons[#self.utilityButtons + 1] = button
     end
-    placeRow(self.utilityButtons, utility, 0)
+    placeVisible(self.utilityButtons, utility, 0)
 
     local abilityBar = CreateFrame("Frame", "HelloDruid_AbilityBar", container, "SecureHandlerStateTemplate")
     abilityBar:SetSize(WIDTH, maxRows * BUTTON + ROW_GAP)
@@ -512,9 +529,12 @@ function AB:RefreshSecureState()
         end
     end
     for _, button in ipairs(self.utilityButtons) do
-        button:SetAttribute("macrotext", macroFor(button.currentAbility, "balance", true))
+        local macro = macroFor(button.currentAbility, "balance", true)
+        button:SetAttribute("macrotext", macro)
+        button:SetShown(macro ~= "")
         applyAbility(button, button.currentAbility)
     end
+    placeVisible(self.utilityButtons, self.utilityBar, 0)
     UnregisterStateDriver(self.bar, "mode")
     RegisterStateDriver(self.bar, "mode", ns.FormIndicator:StateDriver())
     self:ApplyModeOutOfCombat(ns.FormIndicator:CurrentMode())

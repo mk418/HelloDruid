@@ -10,11 +10,11 @@ HelloDruid never casts automatically. Every action comes from a secure button yo
 - **Practical PvE recommendations.** Blizzard-style spell alerts mark the best current action, maintenance needs, interrupts, taunts, and urgent resource actions, matching HelloWarrior's visual language.
 - **Cat support.** Combo points, Rake/Rip timers, finishers, Clearcasting-aware cues, and a secure powershift button. Powershift recommendations require Furor rank 5, enough mana, low energy, and account for Wolfshead Helm.
 - **Bear support.** Maul queue shine, rage-cap warning, Faerie Fire and Demoralizing Roar upkeep, Growl alerts, and Bash/Feral Charge cast alerts.
-- **Balance support.** Moonfire/Insect Swarm/Faerie Fire upkeep and contextual nukes: Wrath while solo or tanking the target, Starfire in groups.
+- **Balance support.** Moonfire/Insect Swarm/Faerie Fire upkeep and contextual nukes: Wrath while solo or tanking the target, Starfire in groups. Tranquility remains available here because HelloHealer deliberately does not bind it.
 - **Combat telemetry.** Energy/rage plus shapeshift mana, Balance mana, melee swing timing, range state, GCD/cooldown sweeps, and a compact player cast bar.
 - **Position-following keybinds.** `/hd keys` binds visible positions, so keys continue to follow collapsed talent slots and form changes.
 
-Healing spells are deliberately absent. HelloHealer owns the healing workflow; HelloDruid keeps Rebirth, Innervate, Barkskin, buffs, and racial utility available.
+Targeted healing spells are deliberately absent. HelloHealer owns that workflow; HelloDruid keeps Rebirth, Tranquility, Innervate, Barkskin, self-buffs, and racial utility available. Mark of the Wild, Thorns, and Innervate cast on you unless your current target is a living friendly unit. Omen of Clarity is always self-cast and glows when missing.
 
 ## Commands
 
