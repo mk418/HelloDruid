@@ -15,7 +15,7 @@ Form indices are discovered from `GetShapeshiftFormInfo`; they are not assumed t
  [ ability ][ ability ][ ability ][ ability ][ ability ][ ability ][ ability ]
 ```
 
-The active mode is Cat for Cat Form, Bear for Bear/Dire Bear, and Balance for every other form. Protected macros, visibility, bindings, and anchors are never reconfigured by insecure Lua during combat. Talent/spell changes are reapplied after combat.
+The displayed mode is Cat for Cat Form, Bear for Bear/Dire Bear, and Caster for every other form. The secure implementation retains `balance` as the internal state key. Protected macros, visibility, bindings, and anchors are never reconfigured by insecure Lua during combat. Talent/spell changes are reapplied after combat.
 
 ## Recommendations
 

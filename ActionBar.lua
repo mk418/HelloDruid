@@ -553,7 +553,8 @@ function AB:UpdateHeader()
     local proc
     if ns.Helper:HasBuff("Clearcasting") then proc = "CLEAR"
     elseif mode == "balance" and ns.Helper:HasBuff("Nature's Grace") then proc = "GRACE" end
-    self.modeLabel:SetText(mode:upper() .. (proc and "\n" .. proc or ""))
+    local displayMode = mode == "balance" and "CASTER" or mode:upper()
+    self.modeLabel:SetText(displayMode .. (proc and "\n" .. proc or ""))
     if mode == "cat" then
         self.modeLabel:SetTextColor(1, 0.75, 0.2)
         self.primaryBar:SetStatusBarColor(0.95, 0.85, 0.25)
