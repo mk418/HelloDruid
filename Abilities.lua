@@ -16,31 +16,35 @@ A.forms = {
 -- rule: cooldown, missing_debuff, finisher, builder, interrupt, taunt,
 -- powershift, rage_dump, execute, or buff. Lower priority wins the gold ring.
 A.cat = {
+    -- Row 1: core rotation, from pull/debuff through builders and finishers.
     { name = "Faerie Fire (Feral)", talentOnly = true, rule = "missing_debuff", debuff = "Faerie Fire (Feral)", altDebuff = "Faerie Fire", anySource = true, priority = 1 },
-    { name = "Rip", rule = "finisher", points = 5, debuff = "Rip", targetHealthAbove = 25, priority = 3 },
-    { name = "Ferocious Bite", rule = "finisher", points = 5, priority = 4 },
-    { name = "Rake", rule = "missing_debuff", debuff = "Rake", priority = 5 },
-    { name = "Tiger's Fury", rule = "cooldown", minEnergy = 60, priority = 6, noStartAttack = true },
     { name = "Shred", rule = "builder", priority = 7 },
     { name = "Claw", rule = "builder", priority = 8 },
+    { name = "Rake", rule = "missing_debuff", debuff = "Rake", priority = 5 },
+    { name = "Rip", rule = "finisher", points = 5, debuff = "Rip", targetHealthAbove = 25, priority = 3 },
+    { name = "Ferocious Bite", rule = "finisher", points = 5, priority = 4 },
+    { name = "Tiger's Fury", rule = "cooldown", minEnergy = 60, priority = 6, noStartAttack = true },
+    -- Row 2: powershifting, stealth/openers, and situational utility.
     { name = "Powershift", special = "powershift", rule = "powershift", priority = 9, talentOnly = true, noStartAttack = true },
     { name = "Prowl", rule = "cooldown", independent = true, noStartAttack = true },
     { name = "Ravage", rule = "builder" },
     { name = "Pounce", rule = "builder" },
-    { name = "Cower", noStartAttack = true },
     { name = "Dash", rule = "cooldown", independent = true, noStartAttack = true },
+    { name = "Cower", noStartAttack = true },
     { name = "Track Humanoids", noStartAttack = true },
 }
 A.catRows = { 7, 7 }
 
 A.bear = {
+    -- Row 1: core threat, then the controls used reactively during a pull.
     { name = "Faerie Fire (Feral)", talentOnly = true, rule = "missing_debuff", debuff = "Faerie Fire (Feral)", altDebuff = "Faerie Fire", anySource = true, priority = 1 },
-    { name = "Demoralizing Roar", rule = "missing_debuff", debuff = "Demoralizing Roar", anySource = true, priority = 2 },
-    { name = "Swipe", rule = "builder", priority = 3 },
     { name = "Maul", rule = "rage_dump", onNextSwing = true },
+    { name = "Swipe", rule = "builder", priority = 3 },
+    { name = "Demoralizing Roar", rule = "missing_debuff", debuff = "Demoralizing Roar", anySource = true, priority = 2 },
     { name = "Growl", rule = "taunt", independent = true },
     { name = "Feral Charge", talentOnly = true, rule = "interrupt", independent = true, noStartAttack = true },
     { name = "Bash", rule = "interrupt", independent = true },
+    -- Row 2: rage generation, survival, and the long-cooldown AoE taunt.
     { name = "Enrage", rule = "resource", independent = true, noStartAttack = true },
     { name = "Frenzied Regeneration", rule = "low_health", healthBelow = 40, independent = true, noStartAttack = true },
     { name = "Challenging Roar", noStartAttack = true },

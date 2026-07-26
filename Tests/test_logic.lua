@@ -77,6 +77,20 @@ local function expect(value, message)
     if not value then error(message, 2) end
 end
 
+local function expectOrder(list, names, label)
+    for index, name in ipairs(names) do
+        expect(list[index] and list[index].name == name,
+            ("%s slot %d should be %s"):format(label, index, name))
+    end
+end
+
+expectOrder(ns.Abilities.cat,
+    { "Faerie Fire (Feral)", "Shred", "Claw", "Rake", "Rip", "Ferocious Bite", "Tiger's Fury" },
+    "Cat")
+expectOrder(ns.Abilities.bear,
+    { "Faerie Fire (Feral)", "Maul", "Swipe", "Demoralizing Roar", "Growl", "Feral Charge", "Bash" },
+    "Bear")
+
 -- With maintenance satisfied, solo/targeted Balance prefers Wrath.
 state.debuffs = { ["Faerie Fire"] = true, Moonfire = true, ["Insect Swarm"] = true }
 local result = ns.Helper:Compute("balance")

@@ -23,6 +23,8 @@ The active mode is Cat for Cat Form, Bear for Bear/Dire Bear, and Balance for ev
 
 Cat powershift recommendations are deterministic: Furor must be rank 5, current energy must be low, Cat Form must be affordable, and Clearcasting must be absent. Wolfshead Helm changes the expected energy return from 40 to 60.
 
+Cat's first row is `Faerie Fire / Shred / Claw / Rake / Rip / Ferocious Bite / Tiger's Fury`; its second row groups powershifting, stealth openers, and utility. Bear's first row is `Faerie Fire / Maul / Swipe / Demoralizing Roar / Growl / Feral Charge / Bash`; rage, survival, and the AoE taunt live on row two. Recommendation priority is independent from this visual ordering.
+
 ## Modules
 
 - `Core.lua` — class gate, events, slash commands, locally animated shine.
