@@ -53,7 +53,7 @@ A.balance = {
     { name = "Insect Swarm", talentOnly = true, rule = "missing_debuff", debuff = "Insect Swarm", priority = 3 },
     { name = "Wrath", rule = "nuke", nuke = "solo", priority = 4 },
     { name = "Starfire", rule = "nuke", nuke = "group", priority = 4 },
-    { name = "Hurricane", rule = "cooldown" },
+    { name = "Hurricane" },
     { name = "Entangling Roots" },
     { name = "Nature's Grasp", talentOnly = true, rule = "targeting_player", independent = true, noStartAttack = true },
     { name = "Hibernate", noStartAttack = true },

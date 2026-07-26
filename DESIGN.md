@@ -19,7 +19,7 @@ The active mode is Cat for Cat Form, Bear for Bear/Dire Bear, and Balance for ev
 
 ## Recommendations
 
-`Helper:Compute(mode)` evaluates target state, player auras, combo points, resource state, cooldowns, group context, and target casts. It returns soft/hard cues per ability. On-next-swing Maul and independent utility never displace the best GCD recommendation.
+`Helper:Compute(mode)` evaluates target state, player auras, combo points, resource state, cooldowns, group context, and target casts. Only hard cues are rendered, using the same Blizzard spell-alert/fallback path as HelloWarrior; soft candidates remain internal to priority selection. On-next-swing Maul and independent utility never displace the best GCD recommendation.
 
 Cat powershift recommendations are deterministic: Furor must be rank 5, current energy must be low, Cat Form must be affordable, and Clearcasting must be absent. Wolfshead Helm changes the expected energy return from 40 to 60.
 

@@ -82,6 +82,24 @@ local function border(button, thickness, r, g, b)
     return frame
 end
 
+local function showRing(frame)
+    if frame:IsShown() then return end
+    frame._pulseTime = 0
+    frame:SetAlpha(frame.pulseFrom)
+    frame:SetScript("OnUpdate", function(self, elapsed)
+        self._pulseTime = self._pulseTime + elapsed
+        local cycle = (self._pulseTime / self.pulsePeriod) % 2
+        local progress = cycle <= 1 and cycle or 2 - cycle
+        self:SetAlpha(self.pulseFrom + (self.pulseTo - self.pulseFrom) * progress)
+    end)
+    frame:Show()
+end
+
+local function hideRing(frame)
+    frame:SetScript("OnUpdate", nil)
+    frame:Hide()
+end
+
 local function createButton(parent, suffix)
     local button = CreateFrame("Button", "HelloDruid_" .. suffix, parent, "SecureActionButtonTemplate")
     button:SetSize(BUTTON, BUTTON)
@@ -116,8 +134,10 @@ local function createButton(parent, suffix)
     count:Hide()
     button.count = count
 
-    button.softGlow = border(button, 2, 0.35, 0.9, 0.55)
-    button.hardGlow = border(button, 4, 1, 0.82, 0.25)
+    button.hardFlash = border(button, 4, 1, 0.95, 0.4)
+    button.hardFlash.pulseFrom = 0.55
+    button.hardFlash.pulseTo = 1.0
+    button.hardFlash.pulsePeriod = 0.3
     ns:AttachShine(button, BUTTON)
 
     button:SetScript("OnEnter", function(self)
@@ -136,6 +156,123 @@ local function createButton(parent, suffix)
     end)
     button:SetScript("OnLeave", GameTooltip_Hide)
     return button
+end
+
+-- HelloWarrior's recommendation visual: an addon-owned spell-alert frame on
+-- current Era clients, Blizzard's legacy pooled overlay on older clients, and
+-- a pulsing gold ring only as the final fallback. Never register addon frames
+-- with Blizzard's shared alert manager; that would taint protected action bars.
+local SQUARE_KEY = "_hdSavedVertex"
+
+local function forEachSquareRegion(overlay, fn)
+    if not overlay or not overlay.GetRegions then return end
+    for _, region in ipairs({ overlay:GetRegions() }) do
+        if region.GetTexture then
+            local texture = region:GetTexture()
+            if type(texture) == "string" then
+                local lower = texture:lower()
+                if lower:find("spellactivationoverlay", 1, true)
+                    and not lower:find("ants", 1, true) then
+                    fn(region)
+                end
+            end
+        end
+    end
+end
+
+local function suppressOverlaySquare(overlay)
+    forEachSquareRegion(overlay, function(region)
+        if not region[SQUARE_KEY] then
+            local r, g, b, a = region:GetVertexColor()
+            region[SQUARE_KEY] = { r or 1, g or 1, b or 1, a or 1 }
+        end
+        region:SetVertexColor(1, 1, 1, 0)
+    end)
+end
+
+local function restoreOverlaySquare(overlay)
+    forEachSquareRegion(overlay, function(region)
+        local saved = region[SQUARE_KEY]
+        if saved then
+            region:SetVertexColor(saved[1], saved[2], saved[3], saved[4])
+            region[SQUARE_KEY] = nil
+        end
+    end)
+end
+
+local function releaseOverlay(button)
+    local overlay = button.overlay
+    if not overlay then return end
+    pcall(restoreOverlaySquare, overlay)
+    if overlay.animIn and overlay.animIn:IsPlaying() then overlay.animIn:Stop() end
+    if overlay.animOut and overlay.animOut:IsPlaying() then overlay.animOut:Stop() end
+    if ActionButton_OverlayGlowAnimOutFinished and overlay.animOut then
+        pcall(ActionButton_OverlayGlowAnimOutFinished, overlay.animOut)
+    else
+        overlay:Hide()
+        button.overlay = nil
+    end
+end
+
+local function acquireSpellAlert(button)
+    if not button.hdSpellAlert then
+        local alert = CreateFrame("Frame", nil, button, "ActionButtonSpellAlertTemplate")
+        local width, height = button:GetSize()
+        alert:SetSize(width * 1.4, height * 1.4)
+        alert:SetPoint("CENTER", button, "CENTER", 0, 0)
+        button.hdSpellAlert = alert
+    end
+    return button.hdSpellAlert
+end
+
+local function showSpellAlert(button)
+    local alert = acquireSpellAlert(button)
+    alert:Show()
+    alert.playingAnimation = true
+    alert.ProcStartAnim:Play()
+end
+
+local function hideSpellAlert(button)
+    local alert = button.hdSpellAlert
+    if not alert then return end
+    alert:Hide()
+    alert.ProcStartAnim:Stop()
+    alert.playingAnimation = false
+end
+
+local function showHardGlow(button)
+    if button.hardGlowOn == "overlay" and not button.overlay then button.hardGlowOn = nil end
+    if button.hardGlowOn then return end
+    if ActionButtonSpellAlertMixin then
+        if pcall(showSpellAlert, button) then
+            button.hardGlowOn = "alert"
+            return
+        end
+        pcall(hideSpellAlert, button)
+    elseif ActionButton_ShowOverlayGlow then
+        local ok = pcall(ActionButton_ShowOverlayGlow, button)
+        if ok and button.overlay then
+            suppressOverlaySquare(button.overlay)
+            button.hardGlowOn = "overlay"
+            return
+        end
+        releaseOverlay(button)
+    end
+    showRing(button.hardFlash)
+    button.hardGlowOn = "fallback"
+end
+
+local function hideHardGlow(button)
+    if not button.hardGlowOn and not button.overlay then return end
+    if button.hardGlowOn == "alert" then pcall(hideSpellAlert, button) end
+    if button.hardGlowOn == "fallback" then hideRing(button.hardFlash) end
+    releaseOverlay(button)
+    button.hardGlowOn = nil
+end
+
+local function applyFlash(button, result)
+    if result and result.hard and button:IsVisible() then showHardGlow(button)
+    else hideHardGlow(button) end
 end
 
 local function applyAbility(button, ability)
@@ -455,8 +592,7 @@ end
 local function updateButton(button, result, mode)
     local ability = button.currentAbility
     if not ability then return end
-    button.softGlow:SetShown(result and result.soft and not result.hard)
-    button.hardGlow:SetShown(result and result.hard)
+    applyFlash(button, result)
     cooldown(button, ability)
 
     local usable, noPower = true, false
@@ -489,7 +625,11 @@ function AB:Tick()
     self:UpdateHeader()
     local results = ns.Helper:Compute(mode)
     for _, button in ipairs(self.buttons) do
-        if button:IsShown() then updateButton(button, results[button.currentAbility.name], mode) end
+        if button:IsShown() and button.currentAbility then
+            updateButton(button, results[button.currentAbility.name], mode)
+        else
+            hideHardGlow(button)
+        end
     end
     for _, button in ipairs(self.utilityButtons) do
         updateButton(button, results[button.currentAbility.name], mode)

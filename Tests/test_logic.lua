@@ -82,6 +82,12 @@ state.debuffs = { ["Faerie Fire"] = true, Moonfire = true, ["Insect Swarm"] = tr
 local result = ns.Helper:Compute("balance")
 expect(result.Wrath and result.Wrath.hard, "solo Balance should recommend Wrath")
 expect(not (result.Starfire and result.Starfire.hard), "solo Balance should not recommend Starfire")
+expect(result.Hurricane == nil, "Hurricane availability should not create a recommendation")
+
+state.debuffs.Moonfire = nil
+result = ns.Helper:Compute("balance")
+expect(result.Moonfire and result.Moonfire.hard, "missing maintenance dots should be hard cues")
+state.debuffs.Moonfire = true
 
 state.grouped = true
 result = ns.Helper:Compute("balance")

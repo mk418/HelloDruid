@@ -185,7 +185,10 @@ function H:Compute(mode)
     for _, ability in ipairs(list) do
         local met = ruleMet(self, ability, mode)
         if met then
-            results[ability.name] = { soft = true, hard = ability.independent or false }
+            results[ability.name] = {
+                soft = true,
+                hard = ability.independent or ability.rule == "missing_debuff" or false,
+            }
             if not ability.independent and not ability.onNextSwing and ability.priority and ability.priority < bestPriority then
                 best, bestPriority = ability, ability.priority
             end
