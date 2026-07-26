@@ -1,0 +1,19 @@
+## Interface: 11509
+## Title: HelloDruid
+## Notes: Lean, opinionated Cat, Bear, and Balance ability manager
+## Author: Drikk
+## Version: 0.1.0
+## SavedVariables: HelloDruidDB
+## SavedVariablesPerCharacter: HelloDruidCharDB
+## IconTexture: Interface\AddOns\HelloDruid\Icon.png
+## Category: Combat
+
+Core.lua
+Config.lua
+Abilities.lua
+Helper.lua
+FormIndicator.lua
+SwingTimer.lua
+CastBar.lua
+ActionBar.lua
+Keybinds.lua

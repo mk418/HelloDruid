@@ -1,0 +1,114 @@
+-- luacheck configuration for HelloDruid (World of Warcraft Classic Era addon).
+-- WoW runs on Lua 5.1. From the addon root, run:  luacheck .
+
+std = "lua51"
+
+-- Macro/format strings and secure snippets push some lines long; line length
+-- is stylistic, not a correctness signal here.
+max_line_length = false
+exclude_files = { "Tests/**" }
+
+-- Silence unused-argument noise: event handlers (event, ...), OnUpdate(self,
+-- elapsed), secure-template callbacks and the implicit `self` all legitimately
+-- ignore some of their parameters.
+unused_args = false
+
+ignore = {
+    "211/ADDON_NAME",  -- `local ADDON_NAME, ns = ...` idiom; name unused in most files
+    "432/self",        -- inner callbacks (OnClick/OnDragStart/...) take their own `self`
+}
+
+-- True globals this addon owns or mutates. Everything else lives on the `ns`
+-- table threaded in via `local _, ns = ...`.
+globals = {
+    "HelloDruidDB",        -- SavedVariables
+    "HelloDruidCharDB",    -- SavedVariablesPerCharacter
+    "SlashCmdList",          -- we install a handler key
+    "SLASH_HELLODRUID1",
+    "SLASH_HELLODRUID2",
+}
+
+-- WoW Classic Era API surface used by the addon. Read-only: indexing is fine,
+-- assignment would be a real mistake worth flagging.
+read_globals = {
+    "_G",
+    -- Frames / UI
+    "CreateFrame",
+    "UIParent",
+    "GameTooltip",
+    "GameTooltip_Hide",
+    "Settings",
+    "ReloadUI",
+    "RegisterStateDriver",
+    "UnregisterStateDriver",
+    "InCombatLockdown",
+    "print",
+    "C_Timer",
+    "C_Spell",
+    "C_UnitAuras",
+    "Enum",
+    -- Keybindings (secure CLICK override bindings) + key state
+    "SetOverrideBindingClick",
+    "ClearOverrideBindings",
+    "GetMouseFocus",
+    "GetMouseFoci",
+    "IsShiftKeyDown",
+    "IsControlKeyDown",
+    "IsAltKeyDown",
+    -- Action-button proc-glow: legacy pooled-overlay globals (pre-1.15.9) and
+    -- the spell-alert template/mixin that replaced them (1.15.9+; we drive our
+    -- own frame -- never the shared manager, whose tables would taint)
+    "ActionButton_ShowOverlayGlow",
+    "ActionButton_HideOverlayGlow",
+    "ActionButton_OverlayGlowAnimOutFinished",
+    "ActionButtonSpellAlertMixin",
+    -- Pet-autocast spinning shine (used for the queued-on-next-swing cue):
+    -- legacy globals (pre-1.15.9) and the overlay mixin that replaced them
+    "AutoCastShine_AutoCastStart",
+    "AutoCastShine_AutoCastStop",
+    "AutoCastOverlayMixin",
+    -- Inventory
+    "GetInventoryItemTexture",
+    "GetInventoryItemLink",
+    "IsEquippedItemType",
+    -- Spell / ability info
+    "GetSpellInfo",
+    "GetSpellCooldown",
+    "UnitCastingInfo",
+    "UnitChannelInfo",
+    "GetSpellPowerCost",
+    "IsUsableSpell",
+    "IsCurrentSpell",
+    "IsSpellInRange",
+    -- Stances
+    "GetShapeshiftForm",
+    "GetNumShapeshiftForms",
+    "GetShapeshiftFormInfo",
+    -- Talents
+    "GetNumTalentTabs",
+    "GetNumTalents",
+    "GetTalentInfo",
+    -- Units
+    "UnitClass",
+    "UnitRace",
+    "UnitAttackSpeed",
+    "UnitCanAttack",
+    "UnitPower",
+    "UnitPowerMax",
+    "UnitExists",
+    "UnitIsDead",
+    "UnitHealth",
+    "UnitHealthMax",
+    "UnitBuff",
+    "UnitDebuff",
+    "UnitGUID",
+    "UnitIsUnit",
+    "IsInGroup",
+    "IsInRaid",
+    "GetComboPoints",
+    -- Combat log / timing
+    "CombatLogGetCurrentEventInfo",
+    "GetTime",
+    -- WoW Lua extensions
+    "wipe",
+}
