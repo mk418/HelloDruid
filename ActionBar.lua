@@ -25,11 +25,7 @@ local function hidden(ability)
 end
 
 local function compressedList(mode)
-    local result = {}
-    for _, ability in ipairs(ns.Abilities:List(mode)) do
-        if not hidden(ability) then result[#result + 1] = ability end
-    end
-    return result
+    return ns.Abilities:SlotMap(mode, function(ability) return not hidden(ability) end)
 end
 
 local function balanceCancelCondition()
@@ -508,8 +504,8 @@ end
 function AB:Relayout()
     if InCombatLockdown() or not self.buttons then return end
     -- Physical slots never move: form swaps are combat-safe and a key bound to
-    -- visible position N always clicks physical slot N. Talent-only abilities
-    -- are compressed into these slots when the secure maps are built.
+    -- row position N always clicks physical slot N. Talent-only abilities are
+    -- compressed within their own row when the secure maps are built.
     ns.Keybinds:Apply()
     ns.Keybinds:RefreshLabels()
 end

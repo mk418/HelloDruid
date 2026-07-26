@@ -5,7 +5,8 @@ local KB = ns.Keybinds
 
 -- Keybindings "follow the bar": a key is bound to a POSITION (reading order over
 -- the visible buttons), not to a spell name. Talent-only entries are compressed
--- into fixed physical slots, and every form preloads position N into slot N.
+-- within their declared row, and every form preloads physical position N into
+-- slot N. A row boundary never moves because a talent in the prior row vanished.
 --
 -- The cast itself is fired by WoW's secure "CLICK <frame>:<button>" override
 -- binding: pressing the key makes the engine click the named secure button, so
@@ -73,18 +74,6 @@ local function mouseFocus()
         return t and t[1]
     end
     if GetMouseFocus then return GetMouseFocus() end
-end
-
--- Visible ability buttons in reading order (= slot order; rows are contiguous
--- slices of slot order, so filtering shown buttons reproduces the layout order).
-local function orderedAbility(AB)
-    local t = {}
-    if AB.buttons then
-        for _, b in ipairs(AB.buttons) do
-            if b:IsShown() then t[#t + 1] = b end
-        end
-    end
-    return t
 end
 
 -- Utility row in reading order: shared Druid utility, then the active racial.
@@ -208,7 +197,9 @@ function KB:TargetUnderMouse()
     if not AB then return end
     local f = mouseFocus()
     if not f then return end
-    for pos, b in ipairs(orderedAbility(AB)) do
+    -- Ability bindings are physical row slots, not a filtered visible ordinal:
+    -- if row-one slot 7 is empty, row-two slot 1 is still position 8/Shift-1.
+    for pos, b in ipairs(AB.buttons or {}) do
         if b == f then return "ability", pos end
     end
     for pos, b in ipairs(orderedUtility(AB)) do

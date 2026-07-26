@@ -1,6 +1,7 @@
 local _, ns = ...
 ns.Abilities = {}
 local A = ns.Abilities
+A.COLUMNS = 7
 
 -- Names intentionally match the English Classic Era spellbook, as does
 -- HelloWarrior. Form indices are discovered at runtime in FormIndicator.
@@ -88,4 +89,25 @@ A.racials = {
 
 function A:List(mode)
     return self[mode] or self.balance
+end
+
+-- Compress unavailable talents within their declared row, never across the row
+-- boundary. The result is deliberately sparse: an incomplete first row leaves
+-- its trailing physical slots empty, while row two still begins at slot 8.
+function A:SlotMap(mode, include)
+    local list = self:List(mode)
+    local rows = self[mode .. "Rows"] or { #list }
+    local slots, dataIndex = {}, 1
+    for rowIndex, rowSize in ipairs(rows) do
+        local slotIndex = (rowIndex - 1) * self.COLUMNS + 1
+        for index = dataIndex, dataIndex + rowSize - 1 do
+            local ability = list[index]
+            if ability and (not include or include(ability)) then
+                slots[slotIndex] = ability
+                slotIndex = slotIndex + 1
+            end
+        end
+        dataIndex = dataIndex + rowSize
+    end
+    return slots
 end

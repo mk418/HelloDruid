@@ -6,7 +6,7 @@ HelloDruid never casts automatically. Every action comes from a secure button yo
 
 ## What it does
 
-- **Form-following layouts.** Cat Form and Bear/Dire Bear Form have dedicated grids. Humanoid, Moonkin, Travel, Aquatic, and other forms use Caster; a caster-form button always provides a way back to humanoid form.
+- **Form-following layouts.** Cat Form and Bear/Dire Bear Form have dedicated grids. Humanoid, Moonkin, Travel, Aquatic, and other forms use Caster; a caster-form button always provides a way back to humanoid form. Talent actions collapse within their own row without pulling utility actions across row boundaries.
 - **Practical PvE recommendations.** Blizzard-style spell alerts mark the best current action, maintenance needs, interrupts, taunts, and urgent resource actions, matching HelloWarrior's visual language.
 - **Cat support.** Combo points, Rake/Rip timers, finishers, Clearcasting-aware cues, and a secure powershift button. Powershift recommendations require Furor rank 5, enough mana, low energy, and account for Wolfshead Helm.
 - **Bear support.** Maul queue shine, rage-cap warning, Faerie Fire and Demoralizing Roar upkeep, Growl alerts, and Bash/Feral Charge cast alerts.

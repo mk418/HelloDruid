@@ -93,6 +93,20 @@ expectOrder(ns.Abilities.bear,
 expect(ns.Abilities.balance[11].name == "Tranquility", "Tranquility should be on the caster layout")
 expect(ns.Abilities.utility[3].name == "Omen of Clarity", "Omen should be on shared utility")
 
+local catWithoutFaerie = ns.Abilities:SlotMap("cat", function(ability)
+    return ability.name ~= "Faerie Fire (Feral)"
+end)
+expect(catWithoutFaerie[7] == nil, "a short Cat first row should leave slot 7 empty")
+expect(catWithoutFaerie[8] and catWithoutFaerie[8].name == "Powershift",
+    "Cat row two should always begin with Powershift")
+
+local bearWithoutCharge = ns.Abilities:SlotMap("bear", function(ability)
+    return ability.name ~= "Feral Charge"
+end)
+expect(bearWithoutCharge[7] == nil, "a short Bear first row should leave slot 7 empty")
+expect(bearWithoutCharge[8] and bearWithoutCharge[8].name == "Enrage",
+    "Bear row two should always begin with Enrage")
+
 -- With maintenance satisfied, solo/targeted Balance prefers Wrath.
 state.debuffs = { ["Faerie Fire"] = true, Moonfire = true, ["Insect Swarm"] = true }
 local result = ns.Helper:Compute("balance")
