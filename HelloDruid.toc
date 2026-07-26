@@ -1,8 +1,8 @@
 ## Interface: 11509
 ## Title: HelloDruid
-## Notes: Lean, opinionated Cat, Bear, and Balance ability manager
+## Notes: Lean, opinionated Cat, Bear, and Caster ability manager
 ## Author: Drikk
-## Version: 0.1.0
+## Version: 0.1.1
 ## X-Curse-Project-ID: 1626363
 ## SavedVariables: HelloDruidDB
 ## SavedVariablesPerCharacter: HelloDruidCharDB

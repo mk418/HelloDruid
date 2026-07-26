@@ -1,5 +1,5 @@
--- Plain-Lua smoke tests for the recommendation engine. The frame/security layer
--- still requires an in-client test, but these lock the form-specific priorities.
+-- Plain-Lua tests for recommendation, macro, and combat-log logic. The frame
+-- and security layer still requires an in-client test.
 local state = {
     mode = "balance",
     grouped = false,
@@ -14,6 +14,8 @@ local state = {
     debuffs = {},
     casting = false,
     wolfshead = true,
+    auraReads = 0,
+    cooldownReads = {},
 }
 
 Enum = { PowerType = { Mana = 0, Rage = 1, Energy = 3 } }
@@ -23,7 +25,10 @@ function GetSpellInfo(name)
     if not spellIDs[name] then nextSpellID = nextSpellID + 1; spellIDs[name] = nextSpellID end
     return name, nil, "icon", nil, nil, nil, spellIDs[name]
 end
-function GetSpellCooldown() return 0, 0 end
+function GetSpellCooldown(name)
+    state.cooldownReads[name] = (state.cooldownReads[name] or 0) + 1
+    return 0, 0
+end
 function GetSpellPowerCost(id)
     if id == spellIDs["Cat Form"] then return { { type = 0, cost = 100 } } end
     return {}
@@ -54,6 +59,7 @@ function UnitDebuff() end
 
 C_UnitAuras = {}
 function C_UnitAuras.GetAuraDataByIndex(unit, index, filter)
+    if unit == "player" then state.auraReads = state.auraReads + 1 end
     local source = unit == "player" and state.buffs or state.debuffs
     local values = {}
     for name, enabled in pairs(source) do
@@ -69,8 +75,13 @@ function ns:On(event, handler)
 end
 
 assert(loadfile("Abilities.lua"))("HelloDruid", ns)
-ns.FormIndicator = { CurrentMode = function() return state.mode end }
+ns.FormIndicator = {
+    CurrentMode = function() return state.mode end,
+    indexToKey = { "bear", "moonkin", "travel" },
+}
 assert(loadfile("Helper.lua"))("HelloDruid", ns)
+assert(loadfile("SwingTimer.lua"))("HelloDruid", ns)
+assert(loadfile("ActionBar.lua"))("HelloDruid", ns)
 ns.Helper:RefreshTalents()
 
 local function expect(value, message)
@@ -106,6 +117,43 @@ end)
 expect(bearWithoutCharge[7] == nil, "a short Bear first row should leave slot 7 empty")
 expect(bearWithoutCharge[8] and bearWithoutCharge[8].name == "Enrage",
     "Bear row two should always begin with Enrage")
+
+function GetNumShapeshiftForms() return 3 end
+
+expect(ns.ActionBar.MacroFor({ name = "Powershift", special = "powershift" }, "cat") ==
+    "#showtooltip Cat Form\n/cancelform\n/cast Cat Form",
+    "powershift should cancel and immediately recast Cat Form")
+expect(ns.ActionBar.MacroFor({ name = "Claw" }, "cat") ==
+    "#showtooltip Claw\n/cast Claw\n/startattack",
+    "Cat attacks should start auto-attack without cancelling form")
+expect(ns.ActionBar.MacroFor({ name = "Moonfire" }, "balance") ==
+    "#showtooltip Moonfire\n/cancelform [form:1/3]\n/cast Moonfire",
+    "caster actions should preserve Moonkin while cancelling other forms")
+expect(ns.ActionBar.MacroFor({
+    name = "Mark of the Wild", targetMode = "friendly_or_self", noStartAttack = true,
+}, "balance", true) ==
+    "#showtooltip Mark of the Wild\n/cancelform [form]\n" ..
+        "/cast [@target,help,nodead] Mark of the Wild; [@player] Mark of the Wild",
+    "shared buffs should cancel form and prefer a friendly target")
+expect(ns.ActionBar.MacroFor({ name = "Tranquility", requiresCaster = true, noStartAttack = true }, "balance") ==
+    "#showtooltip Tranquility\n/cancelform [form]\n/cast Tranquility",
+    "caster-only abilities should always cancel form")
+expect(ns.ActionBar.MacroFor({ name = "War Stomp", noStartAttack = true }, "balance", true) ==
+    "#showtooltip War Stomp\n/cancelform [form]\n/cast War Stomp",
+    "Classic Era Druid racials should cancel form")
+
+local originalList, originalUtility = ns.Abilities.List, ns.Abilities.utility
+function ns.Abilities:List()
+    return {
+        { name = "Claw", rule = "builder" },
+        { name = "Rake", rule = "builder" },
+    }
+end
+ns.Abilities.utility = {}
+state.buffs, state.auraReads = {}, 0
+ns.Helper:Compute("cat")
+expect(state.auraReads == 1, "Compute should resolve Clearcasting once for all abilities")
+ns.Abilities.List, ns.Abilities.utility = originalList, originalUtility
 
 -- With maintenance satisfied, solo/targeted Balance prefers Wrath.
 state.debuffs = { ["Faerie Fire"] = true, Moonfire = true, ["Insect Swarm"] = true }
@@ -145,8 +193,49 @@ expect(not ns.Helper:CanRecommendPowershift(), "Clearcasting should suppress pow
 -- Bear interrupt and lost-aggro cues are independent hard alerts.
 state.mode, state.buffs, state.casting, state.targetTargetsPlayer = "bear", {}, true, false
 state.debuffs = { ["Faerie Fire (Feral)"] = true, ["Demoralizing Roar"] = true }
+state.cooldownReads = {}
 result = ns.Helper:Compute("bear")
 expect(result.Bash and result.Bash.hard, "Bear should alert Bash during a cast")
 expect(result.Growl and result.Growl.hard, "Bear should alert Growl when another unit has the target")
+expect(state.cooldownReads.Bash == 1, "interrupt rules should check their cooldown once")
+expect(state.cooldownReads.Growl == 1, "taunt rules should check their cooldown once")
+expect(state.cooldownReads.Enrage == 1, "resource rules should check their cooldown once")
+expect(state.cooldownReads.Innervate == 1, "mana-helper rules should check their cooldown once")
 
-print("HelloDruid recommendation tests passed")
+local combatSubtype, combatSource, combatPayload13, combatPayload21
+function UnitGUID() return "player-guid" end
+function CombatLogGetCurrentEventInfo()
+    return 0, combatSubtype, false, combatSource, false, false, false, false, false, false, false,
+        false, combatPayload13, false, false, false, false, false, false, false, combatPayload21
+end
+
+ns.enabled, ns.SwingTimer.bar = true, true
+local starts = 0
+function ns.SwingTimer:Start() starts = starts + 1 end
+local combatHandler = ns.eventHandlers.COMBAT_LOG_EVENT_UNFILTERED[1]
+local function expectSwingStart(subtype, source, payload13, payload21, expected, message)
+    combatSubtype, combatSource = subtype, source
+    combatPayload13, combatPayload21 = payload13, payload21
+    local before = starts
+    combatHandler()
+    expect(starts - before == expected, message)
+end
+
+expectSwingStart("SWING_DAMAGE", "player-guid", false, false, 1,
+    "main-hand swing damage should restart the timer")
+expectSwingStart("SWING_DAMAGE", "player-guid", false, true, 0,
+    "off-hand swing damage should not restart the timer")
+expectSwingStart("SWING_MISSED", "player-guid", false, true, 1,
+    "main-hand swing misses should use field 13, not field 21")
+expectSwingStart("SWING_MISSED", "player-guid", true, false, 0,
+    "off-hand swing misses should not restart the timer")
+expectSwingStart("SPELL_DAMAGE", "player-guid", "Maul", true, 1,
+    "Maul damage should use the spell name in field 13")
+expectSwingStart("SPELL_MISSED", "player-guid", "Maul", false, 1,
+    "missed Mauls should restart the timer")
+expectSwingStart("SPELL_DAMAGE", "player-guid", "Wrath", false, 0,
+    "other spell damage should not restart the timer")
+expectSwingStart("SWING_DAMAGE", "other-guid", false, false, 0,
+    "other units' swings should be ignored")
+
+print("HelloDruid logic tests passed")

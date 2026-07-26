@@ -64,6 +64,7 @@ local function macroFor(ability, mode, utility)
     end
     return table.concat(lines, "\n")
 end
+AB.MacroFor = macroFor
 
 local function border(button, thickness, r, g, b)
     local frame = CreateFrame("Frame", nil, button)

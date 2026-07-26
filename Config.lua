@@ -38,7 +38,7 @@ function Config:CreatePanel()
     title:SetText("HelloDruid")
     local subtitle = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
     subtitle:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -8)
-    subtitle:SetText("Cat, Bear, and Balance ability manager for Classic Era.")
+    subtitle:SetText("Cat, Bear, and Caster ability manager for Classic Era.")
 
     local bars = checkbox(panel, "Show HelloDruid bars", subtitle, -18)
     local locked = checkbox(panel, "Lock position", bars)
@@ -63,7 +63,7 @@ function Config:CreatePanel()
     local help = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
     help:SetPoint("TOPLEFT", reset, "BOTTOMLEFT", 0, -16)
     help:SetJustifyH("LEFT")
-    help:SetText("The active layout follows form: Cat and Bear have dedicated bars; every other form uses Balance.\n" ..
+    help:SetText("The active layout follows form: Cat and Bear have dedicated bars; every other form uses Caster.\n" ..
         "Use /hd keys, hover a button, and press a key to edit bindings. Escape exits keybind mode.")
 
     if Settings and Settings.RegisterCanvasLayoutCategory then

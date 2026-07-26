@@ -101,8 +101,8 @@ local function catFormManaCost()
     return catCost
 end
 
-local function affordable(name)
-    if H:HasBuff("Clearcasting") then return true end
+local function affordable(name, clearcasting)
+    if clearcasting then return true end
     local spellID = select(7, GetSpellInfo(name))
     if not spellID or not GetSpellPowerCost then return true end
     local costs = GetSpellPowerCost(spellID)
@@ -114,9 +114,10 @@ local function affordable(name)
     return true
 end
 
-function H:CanRecommendPowershift()
+function H:CanRecommendPowershift(clearcasting)
     if ns.FormIndicator:CurrentMode() ~= "cat" then return false end
-    if self:HasBuff("Clearcasting") then return false end
+    if clearcasting == nil then clearcasting = self:HasBuff("Clearcasting") end
+    if clearcasting then return false end
     if furorRank < 5 then return false end
     local gain = wolfsheadEquipped() and 60 or 40
     local energy = UnitPower("player", ENERGY)
@@ -130,15 +131,15 @@ function H:IsRageCapping()
     return InCombatLockdown() and maximum and maximum > 0 and UnitPower("player", RAGE) / maximum >= 0.8
 end
 
-local function ruleMet(self, ability, mode)
-    if ability.special == "powershift" then return self:CanRecommendPowershift() end
+local function ruleMet(self, ability, mode, clearcasting)
+    if ability.special == "powershift" then return self:CanRecommendPowershift(clearcasting) end
     if not GetSpellInfo(ability.name) then return false end
-    if not offCooldown(ability.name) or not affordable(ability.name) then return false end
+    if not offCooldown(ability.name) or not affordable(ability.name, clearcasting) then return false end
     local rule = ability.rule
     if not rule then return false end
     if rule == "cooldown" then
         if ability.minEnergy and UnitPower("player", ENERGY) < ability.minEnergy then return false end
-        return offCooldown(ability.name)
+        return true
     elseif rule == "missing_debuff" then
         return hostileTarget() and not self:Debuff(ability.debuff, ability.anySource)
             and not (ability.altDebuff and self:Debuff(ability.altDebuff, ability.anySource))
@@ -150,25 +151,25 @@ local function ruleMet(self, ability, mode)
     elseif rule == "builder" then
         return hostileTarget()
     elseif rule == "interrupt" then
-        return targetCasting() and offCooldown(ability.name)
+        return targetCasting()
     elseif rule == "taunt" then
-        return hostileTarget() and UnitExists("targettarget") and not (UnitIsUnit and UnitIsUnit("targettarget", "player")) and offCooldown(ability.name)
+        return hostileTarget() and UnitExists("targettarget") and not (UnitIsUnit and UnitIsUnit("targettarget", "player"))
     elseif rule == "resource" then
-        return UnitPower("player", RAGE) < 20 and offCooldown(ability.name)
+        return UnitPower("player", RAGE) < 20
     elseif rule == "rage_dump" then
         return self:IsRageCapping()
     elseif rule == "nuke" then
         if not hostileTarget() then return false end
         local grouped = isGroupedNuke()
         if ability.nuke == "group" then
-            return grouped or not GetSpellInfo("Wrath") or not affordable("Wrath")
+            return grouped or not GetSpellInfo("Wrath") or not affordable("Wrath", clearcasting)
         end
-        return not grouped or not GetSpellInfo("Starfire") or not affordable("Starfire")
+        return not grouped or not GetSpellInfo("Starfire") or not affordable("Starfire", clearcasting)
     elseif rule == "buff" then
         return not self:HasBuff(ability.buff) and not (ability.altBuff and self:HasBuff(ability.altBuff))
     elseif rule == "mana_helper" then
         local maximum = UnitPowerMax("player", MANA)
-        return maximum > 0 and UnitPower("player", MANA) / maximum <= 0.3 and offCooldown(ability.name)
+        return maximum > 0 and UnitPower("player", MANA) / maximum <= 0.3
     elseif rule == "low_health" then
         local maximum = UnitHealthMax("player")
         return maximum > 0 and UnitHealth("player") / maximum * 100 < (ability.healthBelow or 50)
@@ -182,11 +183,11 @@ end
 function H:Compute(mode)
     local results, best, bestPriority = {}, nil, math.huge
     local list = ns.Abilities:List(mode)
+    local clearcasting = self:HasBuff("Clearcasting")
     for _, ability in ipairs(list) do
-        local met = ruleMet(self, ability, mode)
+        local met = ruleMet(self, ability, mode, clearcasting)
         if met then
             results[ability.name] = {
-                soft = true,
                 hard = ability.independent or ability.rule == "missing_debuff" or false,
             }
             if not ability.independent and not ability.onNextSwing and ability.priority and ability.priority < bestPriority then
@@ -196,7 +197,7 @@ function H:Compute(mode)
     end
     if best then results[best.name].hard = true end
     for _, ability in ipairs(ns.Abilities.utility) do
-        if ruleMet(self, ability, mode) then results[ability.name] = { soft = true, hard = true } end
+        if ruleMet(self, ability, mode, clearcasting) then results[ability.name] = { hard = true } end
     end
     return results
 end

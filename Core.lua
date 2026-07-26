@@ -79,7 +79,7 @@ function ns:SetShine(button, enabled, r, g, b)
             end
             shine._timers = { 0, 0, 0, 0 }
             shine:SetScript("OnUpdate", shineUpdate)
-        else
+        elseif AutoCastShine_AutoCastStart then
             AutoCastShine_AutoCastStart(shine, r, g, b)
         end
     else

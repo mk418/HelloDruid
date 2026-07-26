@@ -43,11 +43,12 @@ end
 
 ns:On("COMBAT_LOG_EVENT_UNFILTERED", function()
     if not ns.enabled or not ST.bar then return end
-    local event = { CombatLogGetCurrentEventInfo() }
-    if event[4] ~= UnitGUID("player") then return end
-    if event[2] == "SWING_DAMAGE" and not event[21] then ST:Start()
-    elseif event[2] == "SWING_MISSED" and not event[13] then ST:Start()
-    elseif (event[2] == "SPELL_DAMAGE" or event[2] == "SPELL_MISSED") and event[13] == "Maul" then ST:Start() end
+    local _, subtype, _, sourceGUID, _, _, _, _, _, _, _, _, payload13,
+        _, _, _, _, _, _, _, payload21 = CombatLogGetCurrentEventInfo()
+    if sourceGUID ~= UnitGUID("player") then return end
+    if subtype == "SWING_DAMAGE" and not payload21 then ST:Start()
+    elseif subtype == "SWING_MISSED" and not payload13 then ST:Start()
+    elseif (subtype == "SPELL_DAMAGE" or subtype == "SPELL_MISSED") and payload13 == "Maul" then ST:Start() end
 end)
 
 ns:On("UNIT_ATTACK_SPEED", function(unit)
@@ -63,4 +64,3 @@ ns:On("PLAYER_REGEN_ENABLED", function()
     ST.started = nil
     if ST.bar then ST.bar:Hide() end
 end)
-
