@@ -62,8 +62,14 @@ function C_UnitAuras.GetAuraDataByIndex(unit, index, filter)
     if unit == "player" then state.auraReads = state.auraReads + 1 end
     local source = unit == "player" and state.buffs or state.debuffs
     local values = {}
-    for name, enabled in pairs(source) do
-        if enabled then values[#values + 1] = { name = name, duration = 12, expirationTime = 112 } end
+    for name, value in pairs(source) do
+        if value then
+            values[#values + 1] = {
+                name = name,
+                duration = type(value) == "table" and value.duration or 12,
+                expirationTime = type(value) == "table" and value.expirationTime or 112,
+            }
+        end
     end
     return values[index]
 end
@@ -163,6 +169,30 @@ expect(not (result.Starfire and result.Starfire.hard), "solo Balance should not 
 expect(result.Hurricane == nil, "Hurricane availability should not create a recommendation")
 expect(result["Omen of Clarity"] and result["Omen of Clarity"].hard,
     "missing Omen of Clarity should create a self-buff reminder")
+
+-- Feral forms get time to refresh their important long buffs before expiry.
+state.mode, state.buffs = "cat", {
+    ["Mark of the Wild"] = { duration = 1800, expirationTime = 101 },
+    Thorns = { duration = 600, expirationTime = 221 },
+    ["Omen of Clarity"] = { duration = 1800, expirationTime = 220 },
+}
+result = ns.Helper:Compute("cat")
+expect(not result.Thorns, "Cat should not refresh Thorns with more than two minutes remaining")
+expect(result["Omen of Clarity"] and result["Omen of Clarity"].hard,
+    "Cat should refresh Omen of Clarity with exactly two minutes remaining")
+expect(not result["Mark of the Wild"], "the Feral refresh window should not apply to Mark of the Wild")
+
+state.mode = "bear"
+state.buffs.Thorns.expirationTime = 220
+result = ns.Helper:Compute("bear")
+expect(result.Thorns and result.Thorns.hard,
+    "Bear should refresh Thorns with two minutes remaining")
+
+state.mode = "balance"
+result = ns.Helper:Compute("balance")
+expect(not result.Thorns and not result["Omen of Clarity"],
+    "Caster should leave present Feral buffs alone inside the refresh window")
+state.buffs = {}
 
 state.debuffs.Moonfire = nil
 result = ns.Helper:Compute("balance")

@@ -28,7 +28,16 @@ local function aura(unit, filter, name)
     end
 end
 
-function H:HasBuff(name) return aura("player", "HELPFUL", name) ~= nil end
+function H:Buff(name) return aura("player", "HELPFUL", name) end
+
+function H:HasBuff(name) return self:Buff(name) ~= nil end
+
+function H:BuffNeedsRefresh(name, refreshWindow)
+    local data = self:Buff(name)
+    if not data then return true end
+    if not refreshWindow or not data.expirationTime or data.expirationTime <= 0 then return false end
+    return data.expirationTime - GetTime() <= refreshWindow
+end
 
 function H:Debuff(name, anySource)
     if not UnitExists("target") then return nil end
@@ -166,7 +175,12 @@ local function ruleMet(self, ability, mode, clearcasting)
         end
         return not grouped or not GetSpellInfo("Starfire") or not affordable("Starfire", clearcasting)
     elseif rule == "buff" then
-        return not self:HasBuff(ability.buff) and not (ability.altBuff and self:HasBuff(ability.altBuff))
+        local refreshWindow
+        if ability.feralRefreshWindow and (mode == "cat" or mode == "bear") then
+            refreshWindow = ability.feralRefreshWindow
+        end
+        return self:BuffNeedsRefresh(ability.buff, refreshWindow)
+            and (not ability.altBuff or self:BuffNeedsRefresh(ability.altBuff, refreshWindow))
     elseif rule == "mana_helper" then
         local maximum = UnitPowerMax("player", MANA)
         return maximum > 0 and UnitPower("player", MANA) / maximum <= 0.3

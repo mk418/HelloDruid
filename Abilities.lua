@@ -69,8 +69,8 @@ A.balanceRows = { 7, 4 }
 
 A.utility = {
     { name = "Mark of the Wild", rule = "buff", buff = "Mark of the Wild", altBuff = "Gift of the Wild", targetMode = "friendly_or_self", noStartAttack = true },
-    { name = "Thorns", rule = "buff", buff = "Thorns", targetMode = "friendly_or_self", noStartAttack = true },
-    { name = "Omen of Clarity", talentOnly = true, rule = "buff", buff = "Omen of Clarity", targetMode = "self", noStartAttack = true },
+    { name = "Thorns", rule = "buff", buff = "Thorns", feralRefreshWindow = 120, targetMode = "friendly_or_self", noStartAttack = true },
+    { name = "Omen of Clarity", talentOnly = true, rule = "buff", buff = "Omen of Clarity", feralRefreshWindow = 120, targetMode = "self", noStartAttack = true },
     { name = "Barkskin", rule = "low_health", healthBelow = 50, independent = true, targetMode = "self", noStartAttack = true },
     { name = "Innervate", rule = "mana_helper", independent = true, targetMode = "friendly_or_self", noStartAttack = true },
     { name = "Rebirth", noStartAttack = true },
