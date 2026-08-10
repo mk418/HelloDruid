@@ -47,6 +47,7 @@ read_globals = {
     "C_Spell",
     "C_UnitAuras",
     "Enum",
+    "HelloUIClassBarAPI",
     -- Keybindings (secure CLICK override bindings) + key state
     "SetOverrideBindingClick",
     "ClearOverrideBindings",

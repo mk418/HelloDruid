@@ -32,6 +32,7 @@ Targeted healing spells are deliberately absent. HelloHealer owns that workflow;
 - English spell and aura names are used in this first release.
 - Shred can be recommended when optimal, but the Classic API cannot reliably tell whether you are behind the target. Claw remains beside it as the fallback.
 - Travel and Aquatic forms display Caster by design. Caster buttons cancel those forms before casting; compatible Balance spells retain Moonkin Form.
+- Standalone, Blizzard and third-party action bars remain untouched. With HelloUI enabled, HelloUI suppresses central bars 1-3 while this cluster is visible and places an untouched cluster in their bottom-centre space.
 - Recommendations are practical defaults, not a parsing simulator or bot.
 
 Released under the [MIT License](LICENSE).

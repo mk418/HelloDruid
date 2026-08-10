@@ -268,4 +268,39 @@ expectSwingStart("SPELL_DAMAGE", "player-guid", "Wrath", false, 0,
 expectSwingStart("SWING_DAMAGE", "other-guid", false, false, 0,
     "other units' swings should be ignored")
 
+-- Optional HelloUI integration supplies the replacement anchor without
+-- taking ownership of a saved drag position.
+UIParent = {}
+local clusterPoint, registration
+local cluster = {
+    ClearAllPoints = function() clusterPoint = nil end,
+    SetPoint = function(_, ...) clusterPoint = { ... } end,
+}
+ns.ActionBar.container = cluster
+HelloDruidCharDB = {}
+HelloDruidCharDB.position = nil
+HelloUIClassBarAPI = {
+    Register = function(addonName, frame, callback)
+        registration = { addonName = addonName, frame = frame, callback = callback }
+        callback(true)
+        return true
+    end,
+    GetAnchor = function() return "BOTTOM", "MainActionBar", "BOTTOM", 0, 0 end,
+}
+expect(ns.ActionBar:RegisterHelloUI(), "HelloUI registration should succeed")
+expect(registration.addonName == "HelloDruid" and registration.frame == cluster,
+    "registration should identify HelloDruid and its cluster")
+expect(clusterPoint[1] == "BOTTOM" and clusterPoint[2] == "MainActionBar",
+    "an untouched cluster should use HelloUI's action-bar anchor")
+
+HelloDruidCharDB.position = { point = "TOP", relativePoint = "TOP", x = 12, y = -34 }
+ns.ActionBar:UpdatePosition()
+expect(clusterPoint[1] == "TOP" and clusterPoint[2] == UIParent and clusterPoint[4] == 12,
+    "a saved position should remain player-owned")
+
+HelloDruidCharDB.position = nil
+registration.callback(false)
+expect(clusterPoint[1] == "CENTER" and clusterPoint[2] == UIParent and clusterPoint[5] == -160,
+    "disabling HelloUI should restore the standalone default")
+
 print("HelloDruid logic tests passed")

@@ -1,4 +1,4 @@
-local _, ns = ...
+local ADDON_NAME, ns = ...
 ns.ActionBar = {}
 local AB = ns.ActionBar
 
@@ -442,6 +442,7 @@ function AB:Build()
 
     ns.CastBar:Build(container)
     self.ticker = C_Timer.NewTicker(0.1, function() AB:Tick() end)
+    self:RegisterHelloUI()
 end
 
 function AB:ApplyModeOutOfCombat(mode)
@@ -469,7 +470,21 @@ function AB:UpdatePosition()
     local position = HelloDruidCharDB.position
     self.container:ClearAllPoints()
     if position then self.container:SetPoint(position.point, UIParent, position.relativePoint, position.x, position.y)
+    elseif self.helloUIIntegrated and HelloUIClassBarAPI and HelloUIClassBarAPI.GetAnchor then
+        local point, relativeTo, relativePoint, x, y = HelloUIClassBarAPI.GetAnchor()
+        if point then self.container:SetPoint(point, relativeTo, relativePoint, x, y)
+        else self.container:SetPoint("CENTER", UIParent, "CENTER", 0, -160) end
     else self.container:SetPoint("CENTER", UIParent, "CENTER", 0, -160) end
+end
+
+function AB:RegisterHelloUI()
+    local api = HelloUIClassBarAPI
+    if not (api and api.Register and self.container) then return false end
+
+    return api.Register(ADDON_NAME, self.container, function(integrated)
+        self.helloUIIntegrated = integrated and true or false
+        if not HelloDruidCharDB.position then self:UpdatePosition() end
+    end)
 end
 
 function AB:ResetPosition()

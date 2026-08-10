@@ -37,4 +37,4 @@ Shared buffs use secure `[@target,help,nodead] ...; [@player] ...` macros, so th
 - `SwingTimer.lua` / `CastBar.lua` — form-aware combat timing.
 - `Config.lua` / `Keybinds.lua` — saved state, settings, and position-following bindings.
 
-The addon is standalone and does not hide or restyle Blizzard or DragonflightUI action bars. The sole exception is the player cast bar: while HelloDruid's replacement is enabled and visible, it uses Blizzard's own `SetAndUpdateShowCastbar` replacement-bar switch and restores the Blizzard bar when disabled.
+The addon is standalone and does not hide or restyle Blizzard or DragonflightUI action bars. The sole exception is the player cast bar: while HelloDruid's replacement is enabled and visible, it uses Blizzard's own `SetAndUpdateShowCastbar` replacement-bar switch and restores the Blizzard bar when disabled. When HelloUI is present, HelloDruid registers its cluster and HelloUI owns the optional suppression of central bars 1-3 plus the replacement anchor; saved drag positions are never overwritten.
