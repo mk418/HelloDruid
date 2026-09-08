@@ -133,8 +133,8 @@ expect(ns.ActionBar.MacroFor({ name = "Claw" }, "cat") ==
     "#showtooltip Claw\n/cast Claw\n/startattack",
     "Cat attacks should start auto-attack without cancelling form")
 expect(ns.ActionBar.MacroFor({ name = "Moonfire" }, "balance") ==
-    "#showtooltip Moonfire\n/cancelform [form:1/3]\n/cast Moonfire",
-    "caster actions should preserve Moonkin while cancelling other forms")
+    "#showtooltip Moonfire\n/cancelform [form:1/3]\n/startattack\n/cast Moonfire",
+    "caster attacks should start auto-attack before casting and preserve Moonkin while cancelling other forms")
 expect(ns.ActionBar.MacroFor({
     name = "Mark of the Wild", targetMode = "friendly_or_self", noStartAttack = true,
 }, "balance", true) ==

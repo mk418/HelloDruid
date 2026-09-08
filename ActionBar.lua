@@ -51,6 +51,10 @@ local function macroFor(ability, mode, utility)
         local condition = balanceCancelCondition()
         if condition then lines[#lines + 1] = "/cancelform " .. condition end
     end
+    local startAttack = not ability.noStartAttack and not utility
+    if startAttack and mode == "balance" then
+        lines[#lines + 1] = "/startattack"
+    end
     if ability.targetMode == "friendly_or_self" then
         lines[#lines + 1] = ("/cast [@target,help,nodead] %s; [@player] %s"):format(
             ability.name, ability.name)
@@ -59,7 +63,7 @@ local function macroFor(ability, mode, utility)
     else
         lines[#lines + 1] = "/cast " .. ability.name
     end
-    if not ability.noStartAttack and not utility and mode ~= "balance" then
+    if startAttack and mode ~= "balance" then
         lines[#lines + 1] = "/startattack"
     end
     return table.concat(lines, "\n")
